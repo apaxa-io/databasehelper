@@ -3,13 +3,13 @@ package sqlhelper
 
 import "database/sql"
 
-// SingleScannable represent object in what single row can be saved.
+// SingleScannable represent object in that single row can be saved.
 type SingleScannable interface {
 	// SqlScanInterface return slice of interfaces which will be passed into Row.Scan at once.
 	SqlScanInterface() []interface{}
 }
 
-// MultiScannable represent object in what any amount of rows can be saved.
+// MultiScannable represent object in that any amount of rows can be saved.
 type MultiScannable interface {
 	// NewElement called for each row in query result. It should returns SingleScannable object for scanning row.
 	// Usually this method add new element to the underlying slice and return this element.
