@@ -1,9 +1,7 @@
 // Package sqlhelper provides simple interface to perform prepared statement and store all result (including multiple rows) at once.
 package sqlhelper
 
-import (
-	"database/sql"
-)
+import "database/sql"
 
 // SingleScannable represent object in that single row can be saved.
 type SingleScannable interface {
@@ -13,9 +11,9 @@ type SingleScannable interface {
 
 // MultiScannable represent object in that any amount of rows can be saved.
 type MultiScannable interface {
-	// NewElement called for each row in query result. It should returns SingleScannable object for scanning row.
+	// SqlNewElement called for each row in query result. It should returns SingleScannable object for scanning row.
 	// Usually this method add new element to the underlying slice and return this element.
-	NewElement() SingleScannable
+	SqlNewElement() SingleScannable
 }
 
 // StmtScanAll performs prepared statement stmt with arguments 'args' and stores all result rows in dst.
@@ -35,7 +33,7 @@ type MultiScannable interface {
 //
 //  type Labels []*Label
 //
-//  func (l *Labels) NewElement() sqlhelper.SingleScannable {
+//  func (l *Labels) SqlNewElement() sqlhelper.SingleScannable {
 //	e := &Label{}
 //	*l = append(*l, e)
 //	return e
@@ -53,21 +51,11 @@ func StmtScanAll(stmt *sql.Stmt, dst MultiScannable, args ...interface{}) error 
 	defer rows.Close()
 
 	for rows.Next() {
-		rowContainer := dst.NewElement()
+		rowContainer := dst.SqlNewElement()
 		if err := rows.Scan(rowContainer.SqlScanInterface()...); err != nil {
 			return err
 		}
 	}
 
 	return rows.Err()
-}
-
-// MustPrepare is like DB.Prepare but panics if the SQL cannot be parsed.
-// It simplifies safe initialization of global variables holding prepared statements.
-func MustPrepare(db *sql.DB, sql string) (stmt *sql.Stmt) {
-	var err error
-	if stmt, err = db.Prepare(sql); err != nil {
-		panic(`sqlhelper: Prepare(` + sql + `): ` + err.Error())
-	}
-	return
 }
