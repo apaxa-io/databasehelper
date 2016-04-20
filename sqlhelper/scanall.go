@@ -1,7 +1,9 @@
 // Package sqlhelper provides simple interface to perform prepared statement and store all result (including multiple rows) at once.
 package sqlhelper
 
-import "database/sql"
+import (
+	"database/sql"
+)
 
 // SingleScannable represent object in that single row can be saved.
 type SingleScannable interface {
@@ -58,4 +60,14 @@ func StmtScanAll(stmt *sql.Stmt, dst MultiScannable, args ...interface{}) error 
 	}
 
 	return rows.Err()
+}
+
+// MustPrepare is like DB.Prepare but panics if the SQL cannot be parsed.
+// It simplifies safe initialization of global variables holding prepared statements.
+func MustPrepare(db *sql.DB, sql string) (stmt *sql.Stmt) {
+	var err error
+	if stmt, err = db.Prepare(sql); err != nil {
+		panic(`sqlhelper: Prepare(` + sql + `): ` + err.Error())
+	}
+	return
 }
